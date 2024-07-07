@@ -1,41 +1,58 @@
-import  { useEffect, useState } from 'react';
-import io from 'socket.io-client';
+import { useEffect, useState } from "react";
+import io from "socket.io-client";
+// https://moonlight-tryst-1.onrender.com/
 
-const socket = io('http://localhost:5000'); // Adjust URL if necessary
+const socket = io.connect("https://moonlight-tryst-1.onrender.com/");
 
 function App() {
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<string[]>([]);
+  //Room State
+  const [room, setRoom] = useState("");
 
-  useEffect(() => {
-    socket.on('message', (msg) => {
-      setMessages((prevMessages) => [...prevMessages, msg]);
-    });
+  // Messages States
+  const [message, setMessage] = useState("");
+  const [messageList, setMessageList] = useState<string[]>([]);
 
-    return () => {
-      socket.off('message');
-    };
-  }, []);
-
-  const sendMessage = () => {
-    socket.emit('message', message);
-    setMessage('');
+  const joinRoom = () => {
+    if (room !== "") {
+      socket.emit("join_room", room);
+      alert("Joined room :"+room);
+    }
   };
 
+  const sendMessage = () => {
+    socket.emit("send_message", { message, room });
+    setMessageList((prev) => [...prev, message]);
+    setMessage("");
+  };
+
+  useEffect(() => {
+    socket.off().on("receive_message", (data) => {
+      setMessageList((prev) => [...prev, data.message]);
+    });
+  }, [socket]);
+
   return (
-    <div>
-      <h1>Real-Time Chat</h1>
-      <div>
-        {messages.map((msg, index) => (
-          <p key={index}>{msg}</p>
-        ))}
-      </div>
+    <div className="App">
       <input
-        type="text"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Room Number..."
+        value={room}
+        onChange={(event) => {
+          setRoom(event.target.value);
+        }}
       />
-      <button onClick={sendMessage}>Send</button>
+      <button onClick={joinRoom}> Join Room</button>
+      <input
+        value={message}
+        placeholder="Message..."
+        onChange={(event) => {
+          setMessage(event.target.value);
+        }}
+      />
+      <button onClick={sendMessage}> Send Message</button>
+      <h1> Messages : </h1>
+      {messageList.map((item) => {
+        return <div key={Math.random() * 100000}>{item}</div>;
+      })}
     </div>
   );
 }

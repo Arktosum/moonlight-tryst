@@ -1,31 +1,33 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const cors = require('cors');
-
+const express = require("express");
 const app = express();
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
 
 app.use(cors());
+
 const server = http.createServer(app);
-const io = socketIo(server);
 
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
-
-app.get('/',(req, res) => {
-  res.send("<h1>Welcome to the backend!</h1>");
-})
-io.on('connection', (socket) => {
-  console.log('A user connected');
-  
-  socket.on('message', (msg) => {
-    console.log('Message received:', msg);
-    io.emit('message', msg); // Broadcast message to all clients
+io.on("connection", (socket) => {
+  // console.log(`User Connected: ${socket.id}`);
+  socket.on("join_room", (data) => {
+    console.log("joined room",data);
+    socket.join(data);
   });
-  
-  socket.on('disconnect', () => {
-    console.log('A user disconnected');
+
+  socket.on("send_message", (data) => {
+    console.log("sending message",data);
+    socket.to(data.room).emit("receive_message", data);
   });
 });
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(3001, () => {
+  console.log("SERVER IS RUNNING",3001);
+});
