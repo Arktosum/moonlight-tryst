@@ -3,9 +3,7 @@ const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
-
 app.use(cors());
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -14,6 +12,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+
 
 io.on("connection", (socket) => {
   // console.log(`User Connected: ${socket.id}`);
