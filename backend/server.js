@@ -9,6 +9,11 @@ app.use(cors());
 const server = http.createServer(app);
 const io = socketIo(server);
 
+
+
+app.get('/',(req, res) => {
+  res.send("<h1>Welcome to the backend!</h1>");
+})
 io.on('connection', (socket) => {
   console.log('A user connected');
   
