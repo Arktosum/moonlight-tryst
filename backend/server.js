@@ -13,13 +13,18 @@ mongoose.connect(process.env.MONGODB_URI).then(()=>{
   console.log("Connected to MongoDB");
 })
 
-app.get('/',(req,res)=>{
-  res.send("<h1>Welcome to the backend</h1>")
-})
+
 const messageSchema = new mongoose.Schema({
   message: String,
 },{timestamps:true});
+
+
+const imageSchema = new mongoose.Schema({
+  image: String,
+},{timestamps:true});
+
 const Message = mongoose.model('Message', messageSchema);
+const Image = mongoose.model('Image', imageSchema);
 
 app.use(cors());
 const server = http.createServer(app);
@@ -30,7 +35,9 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
+app.get('/',(req,res)=>{
+  res.send("<h1>Welcome to the backend</h1>")
+})
 
 io.on("connection", (socket) => {
   // console.log(`User Connected: ${socket.id}`);
@@ -47,6 +54,12 @@ io.on("connection", (socket) => {
 
     console.log("sending message",data);
     socket.to(data.room).emit("receive_message", data);
+  });
+
+  socket.on("send_image", async (data) => {
+    const imageItem = new Image({ image: data.image });
+    await imageItem.save();
+    socket.to(data.room).emit("receive_image", data);
   });
 });
 
