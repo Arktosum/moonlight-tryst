@@ -3,6 +3,21 @@ const app = express();
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+
+const dotenv = require("dotenv");
+
+dotenv.config()
+const mongoose = require("mongoose");
+
+mongoose.connect(process.env.MONGODB_URI).then(()=>{
+  console.log("Connected to MongoDB");
+})
+
+const messageSchema = new mongoose.Schema({
+  message: String,
+},{timestamps:true});
+const Message = mongoose.model('Message', messageSchema);
+
 app.use(cors());
 const server = http.createServer(app);
 
@@ -16,12 +31,17 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   // console.log(`User Connected: ${socket.id}`);
-  socket.on("join_room", (data) => {
+  socket.on("join_room", async (data) => {
+    const messageItem = new Message({ message: "Joined room" });
+    await messageItem.save();
     console.log("joined room",data);
     socket.join(data);
   });
 
-  socket.on("send_message", (data) => {
+  socket.on("send_message", async (data) => {
+    const messageItem = new Message({ message: data.message });
+    await messageItem.save();
+
     console.log("sending message",data);
     socket.to(data.room).emit("receive_message", data);
   });

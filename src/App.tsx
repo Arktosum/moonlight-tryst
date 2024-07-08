@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
-// https://moonlight-tryst-1.onrender.com/
-
-const socket = io("https://moonlight-tryst-1.onrender.com/");
+// const ORIGIN = `https://moonlight-tryst-1.onrender.com/`
+const LOCAL = `http://localhost:3001`
+const socket = io(LOCAL);
 
 function App() {
   //Room State
@@ -27,10 +27,13 @@ function App() {
 
   useEffect(() => {
     socket.emit("join_room", "room");
-    socket.off().on("receive_message", (data: { message: string }) => {
+    socket.on("receive_message", (data: { message: string }) => {
       setMessageList((prev) => [...prev, data.message]);
     });
-  }, [socket]);
+    return () => {
+      socket.off("receive_message");
+    };
+  }, []);
 
   return (
     <div className="App">
