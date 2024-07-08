@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
 import ImageUpload from "./ImageUpload";
-// const ORIGIN = `https://moonlight-tryst-1.onrender.com/`
-const LOCAL = `http://localhost:3001`;
-const socket = io(LOCAL);
+const ORIGIN = `https://moonlight-tryst-1.onrender.com/`
+// const ORIGIN = `http://localhost:3001`;
+const socket = io(ORIGIN);
 
 function App() {
   //Room State
