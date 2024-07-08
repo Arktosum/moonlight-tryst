@@ -13,6 +13,9 @@ mongoose.connect(process.env.MONGODB_URI).then(()=>{
   console.log("Connected to MongoDB");
 })
 
+app.get('/',(req,res)=>{
+  res.send("<h1>Welcome to the backend</h1>")
+})
 const messageSchema = new mongoose.Schema({
   message: String,
 },{timestamps:true});
