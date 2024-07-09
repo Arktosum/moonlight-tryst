@@ -7,13 +7,14 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 
 dotenv.config()
+
+const MONGODB_URI = process.env.MONGODB_URI
+const PORT = process.env.PORT
 const mongoose = require("mongoose");
 
-mongoose.connect(process.env.MONGODB_URI).then(()=>{
+mongoose.connect(MONGODB_URI).then(()=>{
   console.log("Connected to MongoDB");
 })
-
-
 const messageSchema = new mongoose.Schema({
   message: String,
 },{timestamps:true});
@@ -35,34 +36,32 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+
 app.get('/',(req,res)=>{
   res.send("<h1>Welcome to the backend</h1>")
 })
 
 io.on("connection", (socket) => {
   // console.log(`User Connected: ${socket.id}`);
-  socket.on("join_room", async (data) => {
-    const messageItem = new Message({ message: "Joined room" });
-    await messageItem.save();
-    console.log("joined room",data);
-    socket.join(data);
+  socket.on("join_room", async (roomName) => {
+    socket.join(roomName);
   });
 
   socket.on("send_message", async (data) => {
-    const messageItem = new Message({ message: data.message });
-    await messageItem.save();
-
+    if(data.type == 'MESSAGE'){
+      const messageItem = new Message({ message: data.content });
+      await messageItem.save();
+    }
+    else{
+      const imageItem =  new Image({ image: data.content });
+      await imageItem.save();
+    }
     console.log("sending message",data);
     socket.to(data.room).emit("receive_message", data);
   });
 
-  socket.on("send_image", async (data) => {
-    const imageItem = new Image({ image: data.image });
-    await imageItem.save();
-    socket.to(data.room).emit("receive_image", data);
-  });
 });
 
-server.listen(3001, () => {
-  console.log("SERVER IS RUNNING",3001);
+server.listen(PORT, () => {
+  console.log(`Server is listening on http://localhost:${PORT}`);
 });
